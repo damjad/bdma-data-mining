@@ -59,7 +59,7 @@ java -Dcsv.delim=, -cp out com.danish.dm.Main <file-path>
 Or you can run the script:
 
 ````
-scripts/run.sh <index> <file-path>
+scripts/run.sh <file-path>
 ````
 
 #### Windows
@@ -69,6 +69,11 @@ In the main directory of the project.
 ````
 java -Dcsv.delim=, -cp out com.danish.dm.Main <file-path>
 ````
+
+### Configuring
+A sample config file is present in `config` directory.
+
+[TODO]
 
 ## Authors
 
