@@ -1,0 +1,1 @@
+calculate all the distances and store it somewhere in the memory.
