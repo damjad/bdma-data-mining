@@ -5,6 +5,8 @@ final public class Constants
     public static final int UNSUCCESSFUL_EXIT_CODE = 1;
     public static final String CSV_DELIMMETER = System.getProperty("csv.delim") == null ? "," : System.getProperty("csv.delim");
     public static final String NOISE = "Noise";
+    public static final String BORDER = "Border";
+    public static final String CORE = "Core";
 
     // System property keys
     public static final String DB_SCAN_MIN_PTS = "db-scan.min-pts";

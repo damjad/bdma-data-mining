@@ -12,7 +12,7 @@ public class DataPoint<T extends Number> implements Comparator<DataPoint<T>>
 {
     private final String id;
     private List<T> data;
-    private String calculatedLabel;
+    private String calculatedLabel;  // used to identify core, border and noise points
 
 
     public List<T> getData()
