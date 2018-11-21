@@ -42,7 +42,6 @@ public class DBScan
                 Integer.parseInt(properties.getProperty(DB_SCAN_MIN_PTS, "5")),
                 Double.parseDouble(properties.getProperty(DB_SCAN_EPS, "1")),
                 DistanceFunctions.DistanceTypes.valueOf(properties.getProperty(DB_SCAN_DISTANCE_TYPE,"EUCLIDEAN")));
-
         this.useDistanceCache = "true".equals(properties.getProperty(DB_SCAN_CACHE_DISTANCE));
 
     }

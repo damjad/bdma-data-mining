@@ -43,26 +43,41 @@ public class PartitionedDBScan extends DBScan
                 }
             }
         }
-        // Printing for DEBUG
-        this.printDebug();
+
         // Merging clusters
+        int clusterCount = 1;
+        boolean clusterCountUpdate = false;
+        for(Cell<Double> cell : grid.getCells()) {
+            for(DataPoint<Double> point : cell.getPointList()) {
+                clusterCountUpdate = grid.mergeCluster(clusterCount, point, distanceFunction);
+                if(clusterCountUpdate)
+                    clusterCount++;
+            }
+        }
 
         // detecting border and noise points
+        for (Cell<Double> cell : grid.getCells()) {
+            for(DataPoint<Double> point : cell.getPointList()) {
+                if(!Constants.CORE.equals(point.getCalculatedLabel())) {
+                    grid.lookForBorderPoints(point, distanceFunction);
+                }
+            }
+        }
 
+        // Printing for DEBUG
+        this.printDebug();
 
         // Plotting
 
     }
 
     private void printDebug() {
-        // Printing all core points
-        System.out.println("Printing core points...");
+        // Printing all points along with clusterId and label
+        System.out.println("Printing all points along with clusterId and label...");
         for (DataPoint<Double> point : this.dataSet) {
-            if (Constants.CORE.equals(point.getCalculatedLabel())) {
-                double x = point.getData().get(0);
-                double y = point.getData().get(1);
-                System.out.println("P(" + x + ", " + y + ")");
-            }
+            double x = point.getData().get(0);
+            double y = point.getData().get(1);
+            System.out.println("P(" + x + ", " + y + ")" + "-->" + "C" + point.getClusterId() + "-->" + point.getCalculatedLabel());
         }
     }
 }

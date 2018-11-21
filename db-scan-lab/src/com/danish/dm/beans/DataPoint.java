@@ -12,8 +12,17 @@ public class DataPoint<T extends Number> implements Comparator<DataPoint<T>>
 {
     private final String id;
     private List<T> data;
+    private int clusterId;
     private String calculatedLabel;  // used to identify core, border and noise points
 
+
+    public int getClusterId() {
+        return clusterId;
+    }
+
+    public void setClusterId(int clusterId) {
+        this.clusterId = clusterId;
+    }
 
     public List<T> getData()
     {

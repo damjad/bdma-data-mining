@@ -4,12 +4,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.util.function.ToDoubleFunction;
 
 import com.danish.dm.beans.Cell;
 import com.danish.dm.beans.DataPoint;
 import com.danish.dm.utils.Constants;
 import com.danish.dm.utils.DistanceCache;
 import com.danish.dm.utils.DistanceFunctions;
+
+import javax.xml.crypto.Data;
 
 import static com.danish.dm.Main.COUNT;
 
@@ -26,9 +29,9 @@ public class Grid {
         this.populateGrid(dataSet);
     }
 
-    public int getCellId (DataPoint<Double> point) {
-        double x = point.getData().get(0);
-        double y = point.getData().get(1);
+    public int getCellId (DataPoint<Double> point, Double... val) {
+        double x = point!=null ? point.getData().get(0) : val[0];
+        double y = point!=null ? point.getData().get(1) : val[1];
         double cellWidth = eps/Math.sqrt(2);
         Double i = (x-this.xMin)/cellWidth;
         Double j = (y-this.yMin)/cellWidth;
@@ -163,6 +166,100 @@ public class Grid {
             }
         }
         return counter;
+    }
+
+    public boolean mergeCluster(int clusterCount, DataPoint<Double> point, DistanceFunctions.DistanceTypes distanceFunction) {
+        int cellId = this.getCellId(point);
+        Cell<Double> originalCell = this.grid.get(cellId);
+
+        boolean isFound;
+        boolean clusterCountUpdate = false;
+        int startId = cellId - this.nRows - 1;
+        for (int x=0; x<3; x++) {
+            for (int y = startId; y < startId + 3; y++) {
+                int neighborCellId = this.getCellId(null, Double.valueOf(x), Double.valueOf(y));
+                Cell<Double> neighbourCell = this.grid.get(neighborCellId);
+                isFound = neighbourCell != null ? this.neighbourPointDist(neighbourCell, originalCell, point, distanceFunction) : false;
+                if (isFound) {
+                    if (originalCell.getClusterId() == -1) {
+                        originalCell.setClusterId(clusterCount);
+                        for(DataPoint<Double> pt : originalCell.getPointList()) {
+                            pt.setClusterId(clusterCount);
+                        }
+                        clusterCountUpdate = true;
+                    }
+                    neighbourCell.setClusterId(originalCell.getClusterId());
+                    for(DataPoint<Double> pt : neighbourCell.getPointList()) {
+                        pt.setClusterId(originalCell.getClusterId());
+                    }
+                }
+            }
+            startId+=nRows;
+        }
+        if(originalCell.getClusterId() == -1) {
+            originalCell.setClusterId(clusterCount);
+            for(DataPoint<Double> pt : originalCell.getPointList()) {
+                pt.setClusterId(clusterCount);
+            }
+            clusterCountUpdate = true;
+        }
+        return clusterCountUpdate;
+    }
+
+    public void lookForBorderPoints(DataPoint<Double> point, DistanceFunctions.DistanceTypes distanceFunction) {
+        DataPoint<Double> q = null;
+        int cellId = this.getCellId(point);
+        Double minDistance = Double.MAX_VALUE;
+
+        int startId = cellId - this.nRows -1;
+        for (int x=0; x<3; x++) {
+            for (int y=startId; y < startId+3; y++) {
+                int neighborCellId = this.getCellId(null, Double.valueOf(x), Double.valueOf(y));
+                Cell<Double> neighbourCell = this.grid.get(neighborCellId);
+                DataPoint<Double> nearestCorePoint = neighbourCell!=null ? this.findNearestCorePoint(neighbourCell, point, distanceFunction) : null;
+                Double distance = nearestCorePoint!=null ? this.getDistance(nearestCorePoint, point, distanceFunction) : Double.MAX_VALUE;
+                if(minDistance > distance) {
+                    minDistance = distance;
+                    q = nearestCorePoint;
+                }
+            }
+            startId += nRows;
+        }
+        if(q!=null) {
+            point.setClusterId(q.getClusterId());
+            point.setCalculatedLabel(Constants.BORDER);
+        } else {
+            point.setCalculatedLabel(Constants.NOISE);
+        }
+    }
+
+    private boolean neighbourPointDist(Cell<Double> neighborCell, Cell<Double> originalCell, DataPoint<Double> consideredPoint, DistanceFunctions.DistanceTypes distanceFunction) {
+        boolean foundAnotherCorePoint = false;
+        for (DataPoint<Double> point : neighborCell.getPointList()) {
+            if(neighborCell!=originalCell && Constants.CORE.equals(point.getCalculatedLabel()) &&
+                    Constants.CORE.equals(consideredPoint.getCalculatedLabel()) &&
+                    this.getDistance(point, consideredPoint, distanceFunction) <= eps) {
+                foundAnotherCorePoint = true;
+                break;
+            }
+        }
+        return foundAnotherCorePoint;
+    }
+
+    private DataPoint<Double> findNearestCorePoint(Cell<Double> neighbourCell, DataPoint<Double> point,
+                                                   DistanceFunctions.DistanceTypes distanceFunction) {
+        Double minDistance = Double.MAX_VALUE;
+        DataPoint<Double> tempPoint = null;
+        for(DataPoint<Double> pointVar : neighbourCell.getPointList()) {
+            if(Constants.CORE.equals(pointVar)) {
+                Double distance = this.getDistance(pointVar, point, distanceFunction);
+                if(distance < minDistance) {
+                    minDistance = distance;
+                    tempPoint = pointVar;
+                }
+            }
+        }
+        return tempPoint;
     }
 
     protected Double getDistance(DataPoint<Double> p1, DataPoint<Double> p2, DistanceFunctions.DistanceTypes distanceFunction)
