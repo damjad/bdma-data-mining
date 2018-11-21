@@ -29,9 +29,9 @@ public class Grid {
         this.populateGrid(dataSet);
     }
 
-    public int getCellId (DataPoint<Double> point, Double... val) {
-        double x = point!=null ? point.getData().get(0) : val[0];
-        double y = point!=null ? point.getData().get(1) : val[1];
+    public int getCellId (DataPoint<Double> point) {
+        double x = point.getData().get(0);
+        double y = point.getData().get(1);
         double cellWidth = eps/Math.sqrt(2);
         Double i = (x-this.xMin)/cellWidth;
         Double j = (y-this.yMin)/cellWidth;
@@ -175,10 +175,9 @@ public class Grid {
         boolean isFound;
         boolean clusterCountUpdate = false;
         int startId = cellId - this.nRows - 1;
-        for (int x=0; x<3; x++) {
-            for (int y = startId; y < startId + 3; y++) {
-                int neighborCellId = this.getCellId(null, Double.valueOf(x), Double.valueOf(y));
-                Cell<Double> neighbourCell = this.grid.get(neighborCellId);
+        for (int i=0; i<3; i++) {
+            for (int id = startId; id < startId + 3; id++) {
+                Cell<Double> neighbourCell = this.grid.get(id);
                 isFound = neighbourCell != null ? this.neighbourPointDist(neighbourCell, originalCell, point, distanceFunction) : false;
                 if (isFound) {
                     if (originalCell.getClusterId() == -1) {
@@ -212,10 +211,9 @@ public class Grid {
         Double minDistance = Double.MAX_VALUE;
 
         int startId = cellId - this.nRows -1;
-        for (int x=0; x<3; x++) {
-            for (int y=startId; y < startId+3; y++) {
-                int neighborCellId = this.getCellId(null, Double.valueOf(x), Double.valueOf(y));
-                Cell<Double> neighbourCell = this.grid.get(neighborCellId);
+        for (int i=0; i<3; i++) {
+            for (int id=startId; id < startId+3; id++) {
+                Cell<Double> neighbourCell = this.grid.get(id);
                 DataPoint<Double> nearestCorePoint = neighbourCell!=null ? this.findNearestCorePoint(neighbourCell, point, distanceFunction) : null;
                 Double distance = nearestCorePoint!=null ? this.getDistance(nearestCorePoint, point, distanceFunction) : Double.MAX_VALUE;
                 if(minDistance > distance) {

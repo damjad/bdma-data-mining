@@ -49,9 +49,11 @@ public class PartitionedDBScan extends DBScan
         boolean clusterCountUpdate = false;
         for(Cell<Double> cell : grid.getCells()) {
             for(DataPoint<Double> point : cell.getPointList()) {
-                clusterCountUpdate = grid.mergeCluster(clusterCount, point, distanceFunction);
-                if(clusterCountUpdate)
-                    clusterCount++;
+                if(point.getClusterId() == 0) {
+                    clusterCountUpdate = grid.mergeCluster(clusterCount, point, distanceFunction);
+                    if(clusterCountUpdate)
+                        clusterCount++;
+                }
             }
         }
 
