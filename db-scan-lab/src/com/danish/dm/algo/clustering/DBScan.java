@@ -113,6 +113,7 @@ public class DBScan
             List<DataPoint<Double>> nNeighbors = rangeQuery(dataSet, distanceFunction, nDataPoint, eps);
             if (nNeighbors.size() >= minPts)
             {
+                nDataPoint.setCalculatedLabel(CORE);
                 seedSet = Utils.union(seedSet, nNeighbors);
             }
         }
@@ -183,14 +184,14 @@ public class DBScan
         System.out.println("Summary: ");
         System.out.println(
                 dataSet.stream().collect(
-                        Collectors.groupingBy(DataPoint::getCalculatedLabel, Collectors.counting())
+                        Collectors.groupingBy(DataPoint::getClusterId, Collectors.counting())
                 ).entrySet().stream().sorted((a,b) -> a.getKey().compareTo(b.getKey())).collect(Collectors.toList())
         );
 
         System.out.println("\nPoints:");
         for (DataPoint<Double> dp: dataSet)
         {
-            System.out.println("Id: " + dp.getId() + " label: " + dp.getCalculatedLabel());
+            System.out.println("Id: " + dp.getId() + " label: " + dp.getCalculatedLabel() + "  cluster ID: "+ dp.getClusterId());
         }
     }
 
