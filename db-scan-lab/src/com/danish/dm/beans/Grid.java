@@ -18,20 +18,22 @@ import static com.danish.dm.Main.COUNT;
 
 public class Grid {
     private HashMap<Integer, Cell<Double>> grid;
-    private int nCols, nRows;
+    private int nCols, nRows, xIndex, yIndex;
     private double xMax, xMin, yMax, yMin;
     private double eps;
 
-    public Grid(double eps, List<DataPoint<Double>> dataSet) {
+    public Grid(double eps, List<DataPoint<Double>> dataSet, int xIndex, int yIndex) {
         this.grid = new HashMap<Integer, Cell<Double>>();
         this.eps = eps;
+        this.xIndex = xIndex;
+        this.yIndex = yIndex;
         this.computeStats(dataSet);
         this.populateGrid(dataSet);
     }
 
     public int getCellId (DataPoint<Double> point) {
-        double x = point.getData().get(0);
-        double y = point.getData().get(1);
+        double x = point.getData().get(xIndex);
+        double y = point.getData().get(yIndex);
         double cellWidth = eps/Math.sqrt(2);
         Double i = (x-this.xMin)/cellWidth;
         Double j = (y-this.yMin)/cellWidth;
@@ -55,18 +57,18 @@ public class Grid {
         double xMax, xMin;
         double yMax, yMin;
 
-        xMax = xMin = dataSet.get(0).getData().get(0);
-        yMax = yMin = dataSet.get(0).getData().get(1);
+        xMax = xMin = dataSet.get(0).getData().get(xIndex);
+        yMax = yMin = dataSet.get(0).getData().get(yIndex);
 
         for (DataPoint<Double> point : dataSet) {
-            if (point.getData().get(0) > xMax)
-                xMax = point.getData().get(0);
-            if (point.getData().get(0) < xMin)
-                xMin = point.getData().get(0);
-            if (point.getData().get(1) > yMax)
-                yMax = point.getData().get(1);
-            if (point.getData().get(1) < yMin)
-                yMin = point.getData().get(1);
+            if (point.getData().get(xIndex) > xMax)
+                xMax = point.getData().get(xIndex);
+            if (point.getData().get(xIndex) < xMin)
+                xMin = point.getData().get(xIndex);
+            if (point.getData().get(yIndex) > yMax)
+                yMax = point.getData().get(yIndex);
+            if (point.getData().get(yIndex) < yMin)
+                yMin = point.getData().get(yIndex);
         }
         this.xMax = xMax;
         this.yMax = yMax;

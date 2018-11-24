@@ -13,9 +13,12 @@ final public class Constants
     public static final String DB_SCAN_EPS = "db-scan.eps";
     public static final String DB_SCAN_DISTANCE_TYPE = "db-scan.distance-type";
     public static final String DB_SCAN_CACHE_DISTANCE = "db-scan.cache-distances";
+    public static final String DB_SCAN_ALGORITHM = "db-scan.algorithm";
+    public static final String DB_SCAN_OUTPUT_FILE = "db-scan.output-file";
 
     public static final String DATA_SET_ID_INDEX = "data-set.id-index";
     public static final String DATA_SET_FILE = "data-set.file";
+
 
 
     private Constants() throws IllegalAccessException

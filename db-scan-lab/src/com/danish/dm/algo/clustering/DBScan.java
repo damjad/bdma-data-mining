@@ -5,12 +5,14 @@ import com.danish.dm.utils.DistanceCache;
 import com.danish.dm.utils.DistanceFunctions;
 import com.danish.dm.utils.Utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static com.danish.dm.Main.COUNT;
+import static com.danish.dm.Main.SYSTEM_PROPERTIES;
 import static com.danish.dm.utils.Constants.*;
 import static com.danish.dm.utils.DistanceFunctions.DistanceTypes;
 import static com.danish.dm.utils.Utils.unSuccessfulExit;
@@ -79,7 +81,9 @@ public class DBScan
 
     private void expandCluster(DataPoint<Double> mDataPoint, int clusterId, List<DataPoint<Double>> mNeighbors)
     {
-        mDataPoint.setCalculatedLabel(clusterId);
+        mDataPoint.setCalculatedLabel(CORE);
+        mDataPoint.setClusterId(clusterId);
+
         List<DataPoint<Double>> seedSet = new ArrayList<>();
         seedSet.addAll(mNeighbors);
         seedSet.remove(mDataPoint);
@@ -93,7 +97,8 @@ public class DBScan
 
             if(NOISE.equals(nDataPoint.getCalculatedLabel()))
             {
-                nDataPoint.setCalculatedLabel(clusterId);
+                nDataPoint.setCalculatedLabel(BORDER);
+                nDataPoint.setClusterId(clusterId);
                 continue;
             }
 
@@ -102,7 +107,8 @@ public class DBScan
                 continue;
             }
 
-            nDataPoint.setCalculatedLabel(clusterId);
+            nDataPoint.setCalculatedLabel(BORDER);
+            nDataPoint.setClusterId(clusterId);
 
             List<DataPoint<Double>> nNeighbors = rangeQuery(dataSet, distanceFunction, nDataPoint, eps);
             if (nNeighbors.size() >= minPts)
@@ -188,6 +194,15 @@ public class DBScan
         }
     }
 
+    public void writeOutput(String fileName) throws IOException
+    {
+        Utils.writeToCSV(fileName, dataSet);
+    }
+
+    public void writeOutput() throws IOException
+    {
+        writeOutput(SYSTEM_PROPERTIES.getProperty(DB_SCAN_OUTPUT_FILE));
+    }
 
     public List<String[]> getInputData()
     {

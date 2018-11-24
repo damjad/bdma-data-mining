@@ -14,11 +14,17 @@ public class CSVReader
     {
         throw new IllegalAccessException("Illegal access to CSVReader()");
     }
+
     public static List<String[]> readCsv(File file) throws IOException
     {
         return Files.readAllLines(file.toPath())
                 .stream()
                 .map(l -> l.split(CSV_DELIMMETER))
                 .collect(Collectors.toList());
+    }
+
+    public static List<String[]> readCsv(String fileName) throws IOException
+    {
+        return readCsv(new File(fileName));
     }
 }

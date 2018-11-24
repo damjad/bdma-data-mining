@@ -1,19 +1,25 @@
 package com.danish.dm.algo.clustering;
 
+import com.danish.dm.beans.Cell;
+import com.danish.dm.beans.DataPoint;
+import com.danish.dm.beans.Grid;
 import com.danish.dm.utils.Constants;
 import com.danish.dm.utils.DistanceFunctions;
-import com.danish.dm.beans.*;
-import com.danish.dm.utils.DistanceCache;
-import com.danish.dm.beans.Grid;
-
-import static com.danish.dm.utils.DistanceFunctions.DistanceTypes;
 
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * An improved version of 2-d DBScan based on a master's thesis
+ *
+ * A faster algorithm for DBSCAN.
+ * By: Ade Gunawan, A.
+ */
 public class PartitionedDBScan extends DBScan
 {
-    
+    int xIndex = 0;
+    int yIndex = 1;
+
     public PartitionedDBScan(List<String[]> inputData, int idIndex, int minPts, double eps, DistanceFunctions.DistanceTypes distanceFunction)
     {
         super(inputData, idIndex, minPts, eps, distanceFunction);
@@ -22,14 +28,16 @@ public class PartitionedDBScan extends DBScan
     public PartitionedDBScan(List<String[]> dataSet, Properties properties)
     {
         super(dataSet, properties);
+        this.xIndex = Integer.valueOf(properties.getProperty("pdb-scan.x_column"));
+        this.yIndex = Integer.valueOf(properties.getProperty("pdb-scan.y_column"));
     }
 
     @Override
     protected void trainInternal()
     {
-        this.dataSet.forEach(p -> System.out.println(p.getData()));
+        //this.dataSet.forEach(p -> System.out.println(p.getData()));
         // Building the grid
-        Grid grid = new Grid(this.eps, this.dataSet);
+        Grid grid = new Grid(this.eps, this.dataSet, xIndex, yIndex);
 
         // Detecting all core points
         for (Cell<Double> cell : grid.getCells()) {
@@ -67,7 +75,7 @@ public class PartitionedDBScan extends DBScan
         }
 
         // Printing for DEBUG
-        this.printDebug();
+        //this.printDebug();
 
         // Plotting
 
