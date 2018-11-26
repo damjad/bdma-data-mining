@@ -170,7 +170,9 @@ public class Grid {
 
         for (DataPoint<Double> point1 : cell1.getPointList()) {
             for (DataPoint<Double> point2 : cell2.getPointList()) {
-                if (this.getDistance(point1, point2, distanceFunction) <= eps) {
+                if (Constants.CORE.equals(point1.getCalculatedLabel()) &&
+                        Constants.CORE.equals(point2.getCalculatedLabel()) &&
+                        this.getDistance(point1, point2, distanceFunction) <= eps) {
                     return true;
                 }
             }
