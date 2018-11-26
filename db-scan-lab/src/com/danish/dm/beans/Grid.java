@@ -1,8 +1,6 @@
 package com.danish.dm.beans;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.lang.Math;
 import java.util.function.ToDoubleFunction;
 
@@ -23,7 +21,7 @@ public class Grid {
     private double eps;
 
     public Grid(double eps, List<DataPoint<Double>> dataSet, int xIndex, int yIndex) {
-        this.grid = new HashMap<Integer, Cell<Double>>();
+        this.grid = new HashMap<>();
         this.eps = eps;
         this.xIndex = xIndex;
         this.yIndex = yIndex;
@@ -91,7 +89,7 @@ public class Grid {
     }
 
     public List<Cell<Double>> getCells() {
-        return new ArrayList<Cell<Double>>(this.grid.values());
+        return new ArrayList<>(this.grid.values());
     }
 
     public void rangeQuery(DataPoint<Double> point, int minPoints, DistanceFunctions.DistanceTypes distanceFunction) {
@@ -105,56 +103,12 @@ public class Grid {
         // Iterating on all possible cells in the neighbour, starting from the adjacent ones.
         boolean termination = false;
 
-        // First cycle - Internal cells
-        int startId = cellId - this.nRows -1; // start from the bottom left cell
-        for (int i=-1; i<2 && !termination; i++) {
-            for (int id=startId; id < startId+3; id++) {
-                if (computeX(cellId)+i != computeX(id))
-                    continue;
-                pointCounter += (id == cellId) ? 0 : this.countNeighbourPoints(id, point, distanceFunction);
-                if (pointCounter >= minPoints) {
-                    termination = true;
-                    break;
-                }
-            }
-            startId += nRows;
-        }
-
-        // Second cycle - external cells
-        startId = cellId - 2*this.nRows -1;
-        for (int id=startId; id<startId+3 && !termination; id++) {
-            if (computeX(cellId)-2 != computeX(id))
-                continue;
+        Collection<Integer> neighCellsId = this.getKernel(cellId);
+        for (int id : neighCellsId) {
             pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
             if (pointCounter >= minPoints) {
                 termination = true;
-            }
-        }
-        startId = cellId + 2*this.nRows -1;
-        for (int id=startId; id<startId+3 && !termination; id++) {
-            if (computeX(cellId)+2 != computeX(id))
-                continue;
-            pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
-            if (pointCounter >= minPoints) {
-                termination = true;
-            }
-        }
-        startId = cellId - this.nRows +2;
-        for (int id=startId; id<startId+3 && !termination; id+=this.nRows) {
-            if (computeY(cellId)+2 != computeY(id))
-                continue;
-            pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
-            if (pointCounter >= minPoints) {
-                termination = true;
-            }
-        }
-        startId = cellId - this.nRows -2;
-        for (int id=startId; id<startId+3 && !termination; id+=this.nRows) {
-            if (computeY(cellId)-2 != computeY(id))
-                continue;
-            pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
-            if (pointCounter >= minPoints) {
-                termination = true;
+                break;
             }
         }
 
@@ -223,7 +177,6 @@ public class Grid {
         }
         return false;
     }
-
 
 
 
@@ -325,6 +278,52 @@ public class Grid {
     private int computeY (int cellId) {
         return cellId - computeX(cellId)*this.nRows;
     }
+
+    // It gets the 21 cells in the neighborhood of cellId
+    private Collection<Integer> getKernel(int cellId) {
+        Set<Integer> neighCells = new HashSet<>();
+
+        // First cycle - Internal cells
+        int startId = cellId - this.nRows -1; // start from the bottom left cell
+        for (int i=-1; i<2; i++) {
+            for (int id=startId; id < startId+3; id++) {
+                if (computeX(cellId)+i != computeX(id))
+                    continue;
+                if (id != cellId)
+                    neighCells.add(id);
+            }
+            startId += this.nRows;
+        }
+
+        // Second cycle - external cells
+        startId = cellId - 2*this.nRows -1;
+        for (int id=startId; id<startId+3; id++) {
+            if (computeX(cellId)-2 != computeX(id))
+                continue;
+            neighCells.add(id);
+        }
+        startId = cellId + 2*this.nRows -1;
+        for (int id=startId; id<startId+3; id++) {
+            if (computeX(cellId)+2 != computeX(id))
+                continue;
+            neighCells.add(id);
+        }
+        startId = cellId - this.nRows +2;
+        for (int id=startId; id<startId+3; id+=this.nRows) {
+            if (computeY(cellId)+2 != computeY(id))
+                continue;
+            neighCells.add(id);
+        }
+        startId = cellId - this.nRows -2;
+        for (int id=startId; id<startId+3; id+=this.nRows) {
+            if (computeY(cellId)-2 != computeY(id))
+                continue;
+            neighCells.add(id);
+        }
+
+        return neighCells;
+    }
+
 
     protected Double getDistance(DataPoint<Double> p1, DataPoint<Double> p2, DistanceFunctions.DistanceTypes distanceFunction)
     {
