@@ -221,22 +221,20 @@ public class Grid {
 
     public void lookForBorderPoints(DataPoint<Double> point, DistanceFunctions.DistanceTypes distanceFunction) {
         DataPoint<Double> q = null;
-        int cellId = this.getCellId(point);
         Double minDistance = Double.MAX_VALUE;
 
-        int startId = cellId - this.nRows -1;
-        for (int i=0; i<3; i++) {
-            for (int id=startId; id < startId+3; id++) {
-                Cell<Double> neighbourCell = this.grid.get(id);
-                DataPoint<Double> nearestCorePoint = neighbourCell!=null ? this.findNearestCorePoint(neighbourCell, point, distanceFunction) : null;
-                Double distance = nearestCorePoint!=null ? this.getDistance(nearestCorePoint, point, distanceFunction) : Double.MAX_VALUE;
-                if(minDistance > distance) {
-                    minDistance = distance;
-                    q = nearestCorePoint;
-                }
+        int cellId = this.getCellId(point);
+        Collection<Integer> neighCellIds = this.getKernel(cellId);
+        for (int id : neighCellIds) {
+            Cell<Double> neighCell = this.grid.get(id);
+            DataPoint<Double> nearestCorePoint = neighCell!=null ? this.findNearestCorePoint(neighCell, point, distanceFunction) : null;
+            Double distance = nearestCorePoint!=null ? this.getDistance(nearestCorePoint, point, distanceFunction) : Double.MAX_VALUE;
+            if(minDistance > distance) {
+                minDistance = distance;
+                q = nearestCorePoint;
             }
-            startId += nRows;
         }
+
         if(q!=null) {
             point.setClusterId(q.getClusterId());
             point.setCalculatedLabel(Constants.BORDER);
@@ -263,7 +261,7 @@ public class Grid {
         Double minDistance = Double.MAX_VALUE;
         DataPoint<Double> tempPoint = null;
         for(DataPoint<Double> pointVar : neighbourCell.getPointList()) {
-            if(Constants.CORE.equals(pointVar)) {
+            if(Constants.CORE.equals(pointVar.getCalculatedLabel())) {
                 Double distance = this.getDistance(pointVar, point, distanceFunction);
                 if(distance < minDistance) {
                     minDistance = distance;
