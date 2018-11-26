@@ -56,13 +56,17 @@ public class PartitionedDBScan extends DBScan
         int clusterCount = 1;
         boolean clusterCountUpdate = false;
         for(Cell<Double> cell : grid.getCells()) {
-            for(DataPoint<Double> point : cell.getPointList()) {
-                if(point.getClusterId() == 0) {
-                    clusterCountUpdate = grid.mergeCluster(clusterCount, point, distanceFunction);
-                    if(clusterCountUpdate)
-                        clusterCount++;
-                }
-            }
+            if (cell.getClusterId() != -1  ||  !cell.containsCore())
+                continue;
+
+            grid.mergeCluster(clusterCount, cell, distanceFunction);
+            clusterCount++;
+
+//            for(DataPoint<Double> point : cell.getPointList()) {
+//                clusterCountUpdate = grid.mergeCluster(clusterCount, point, distanceFunction);
+//                if(clusterCountUpdate)
+//                    clusterCount++;
+//            }
         }
 
         // detecting border and noise points
@@ -76,6 +80,8 @@ public class PartitionedDBScan extends DBScan
 
         // Printing for DEBUG
         //this.printDebug();
+        System.out.println("Total number of clusters: " + (clusterCount-1));
+        this.printDebug();
 
         // Plotting
 
@@ -85,8 +91,8 @@ public class PartitionedDBScan extends DBScan
         // Printing all points along with clusterId and label
         System.out.println("Printing all points along with clusterId and label...");
         for (DataPoint<Double> point : this.dataSet) {
-            double x = point.getData().get(0);
-            double y = point.getData().get(1);
+            double x = point.getData().get(xIndex);
+            double y = point.getData().get(yIndex);
             System.out.println("P(" + x + ", " + y + ")" + "-->" + "C" + point.getClusterId() + "-->" + point.getCalculatedLabel());
         }
     }

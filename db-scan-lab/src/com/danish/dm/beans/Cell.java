@@ -31,6 +31,9 @@ public class Cell<T extends Number> {
 
     public void setClusterId(int clusterId) {
         this.clusterId = clusterId;
+        for (DataPoint<T> point : this.pointList) {
+            point.setClusterId(clusterId);
+        }
     }
 
     public boolean containsCore() {

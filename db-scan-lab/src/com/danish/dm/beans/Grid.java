@@ -107,8 +107,10 @@ public class Grid {
 
         // First cycle - Internal cells
         int startId = cellId - this.nRows -1; // start from the bottom left cell
-        for (int i=0; i<3 && !termination; i++) {
+        for (int i=-1; i<2 && !termination; i++) {
             for (int id=startId; id < startId+3; id++) {
+                if (computeX(cellId)+i != computeX(id))
+                    continue;
                 pointCounter += (id == cellId) ? 0 : this.countNeighbourPoints(id, point, distanceFunction);
                 if (pointCounter >= minPoints) {
                     termination = true;
@@ -121,6 +123,8 @@ public class Grid {
         // Second cycle - external cells
         startId = cellId - 2*this.nRows -1;
         for (int id=startId; id<startId+3 && !termination; id++) {
+            if (computeX(cellId)-2 != computeX(id))
+                continue;
             pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
             if (pointCounter >= minPoints) {
                 termination = true;
@@ -128,6 +132,8 @@ public class Grid {
         }
         startId = cellId + 2*this.nRows -1;
         for (int id=startId; id<startId+3 && !termination; id++) {
+            if (computeX(cellId)+2 != computeX(id))
+                continue;
             pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
             if (pointCounter >= minPoints) {
                 termination = true;
@@ -135,6 +141,8 @@ public class Grid {
         }
         startId = cellId - this.nRows +2;
         for (int id=startId; id<startId+3 && !termination; id+=this.nRows) {
+            if (computeY(cellId)+2 != computeY(id))
+                continue;
             pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
             if (pointCounter >= minPoints) {
                 termination = true;
@@ -142,6 +150,8 @@ public class Grid {
         }
         startId = cellId - this.nRows -2;
         for (int id=startId; id<startId+3 && !termination; id+=this.nRows) {
+            if (computeY(cellId)-2 != computeY(id))
+                continue;
             pointCounter += this.countNeighbourPoints(id, point, distanceFunction);
             if (pointCounter >= minPoints) {
                 termination = true;
@@ -170,7 +180,54 @@ public class Grid {
         return counter;
     }
 
-    public boolean mergeCluster(int clusterCount, DataPoint<Double> point, DistanceFunctions.DistanceTypes distanceFunction) {
+
+    public void mergeCluster(int clusterCount, Cell<Double> cell, DistanceFunctions.DistanceTypes distanceFunction) {
+        int cellId = getCellId(cell.getPointList().get(0));
+
+        // Initializing the cluster
+        cell.setClusterId(clusterCount);
+
+        // Iterating on the adjacent cells
+        boolean isFound;
+        int startId = cellId - this.nRows -1; // start from the bottom left cell
+        for (int i=-1; i<2; i++) {
+            for (int id=startId; id < startId+3; id++) {
+
+                isFound = (id != cellId) &&
+                        computeX(cellId)+i == computeX(id)  &&
+                        this.grid.containsKey(id)  &&
+                        this.grid.get(id).getClusterId() == -1  &&
+                        this.findCloseCorePoints(id, cellId, distanceFunction);
+
+                if (isFound) {
+                    this.mergeCluster(clusterCount, this.grid.get(id), distanceFunction);
+                }
+            }
+            startId += nRows;
+        }
+    }
+
+    /*
+    This method finds if two cells have at least one core point per each closer than eps
+     */
+    private boolean findCloseCorePoints (int cellId1, int cellId2, DistanceFunctions.DistanceTypes distanceFunction) {
+        Cell<Double> cell1 = this.grid.get(cellId1);
+        Cell<Double> cell2 = this.grid.get(cellId2);
+
+        for (DataPoint<Double> point1 : cell1.getPointList()) {
+            for (DataPoint<Double> point2 : cell2.getPointList()) {
+                if (this.getDistance(point1, point2, distanceFunction) <= eps) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+
+    public boolean mergeClusterKunal(int clusterCount, DataPoint<Double> point, DistanceFunctions.DistanceTypes distanceFunction) {
         int cellId = this.getCellId(point);
         Cell<Double> originalCell = this.grid.get(cellId);
 
@@ -182,7 +239,7 @@ public class Grid {
                 Cell<Double> neighbourCell = this.grid.get(id);
                 isFound = neighbourCell != null ? this.neighbourPointDist(neighbourCell, originalCell, point, distanceFunction) : false;
                 if (isFound) {
-                    if (originalCell.getClusterId() == -1) {
+                    if (originalCell.getClusterId() == -1  && neighbourCell.getClusterId() == -1) {
                         originalCell.setClusterId(clusterCount);
                         for(DataPoint<Double> pt : originalCell.getPointList()) {
                             pt.setClusterId(clusterCount);
@@ -260,6 +317,13 @@ public class Grid {
             }
         }
         return tempPoint;
+    }
+
+    private int computeX (int cellId) {
+        return cellId/this.nRows;
+    }
+    private int computeY (int cellId) {
+        return cellId - computeX(cellId)*this.nRows;
     }
 
     protected Double getDistance(DataPoint<Double> p1, DataPoint<Double> p2, DistanceFunctions.DistanceTypes distanceFunction)
