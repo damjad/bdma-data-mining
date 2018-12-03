@@ -1,7 +1,11 @@
 package com.danish.dm.utils;
 
+import com.danish.dm.beans.DataPoint;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Utils
 {
@@ -65,4 +69,19 @@ public class Utils
     }
 
 
+    public static <T extends Number> void writeToCSV(String fileName, List<DataPoint<T>> dataSet) throws IOException
+    {
+        CSVWriter.writeCsv(fileName, dataSet.stream().map(Utils::getWritableDataPoint).collect(Collectors.toList()));
+    }
+
+    private static <T extends Number> List<String> getWritableDataPoint(DataPoint<T> dataPoint)
+    {
+        List<String> attr = new ArrayList<>();
+        attr.add(dataPoint.getId());
+        attr.add(dataPoint.getCalculatedLabel());
+        attr.add(String.valueOf(dataPoint.getClusterId()));
+        attr.addAll(dataPoint.getData().stream().map(d -> (d).toString()).collect(Collectors.toList()));
+
+        return attr;
+    }
 }

@@ -1,6 +1,7 @@
 package com.danish.dm;
 
 import com.danish.dm.algo.clustering.DBScan;
+import com.danish.dm.algo.clustering.PartitionedDBScan;
 import com.danish.dm.utils.CSVReader;
 import com.danish.dm.utils.DistanceFunctions;
 
@@ -29,14 +30,20 @@ public class Main
         SYSTEM_PROPERTIES.load(new FileInputStream(propertiesFile));
 
         List<String[]> dataSet = CSVReader.readCsv(new File(SYSTEM_PROPERTIES.getProperty(DATA_SET_FILE)));
-        DBScan dBScan = new DBScan(dataSet, SYSTEM_PROPERTIES);
 
-        dBScan.train();
-//        dBScan.display();
-        System.out.println("Count : " +COUNT);
-        System.out.println("Cache Mis : " +CACHE_MISS);
-        System.out.println("Cache Mis %: " +CACHE_MISS *1.0d/COUNT*1.0d);
-
+        if ("Partitioned".equals(SYSTEM_PROPERTIES.getProperty("db-scan.algorithm")))
+        {
+            // Partitioned dbScam
+            PartitionedDBScan partitionedDBSCan = new PartitionedDBScan(dataSet, SYSTEM_PROPERTIES);
+            partitionedDBSCan.train();
+            partitionedDBSCan.writeOutput();
+        }
+        else
+        {
+            DBScan dBScan = new DBScan(dataSet, SYSTEM_PROPERTIES);
+            dBScan.train();
+            dBScan.writeOutput();
+        }
     }
 
     public static void validateArgs(String[] args)
